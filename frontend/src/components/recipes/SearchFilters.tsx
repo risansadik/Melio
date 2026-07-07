@@ -7,10 +7,6 @@ interface SearchFiltersProps {
   isSearching: boolean;
 }
 
-// Values confirmed against Spoonacular's documented parameter list
-// (https://spoonacular.com/food-api/docs). Cuisine and meal type accept
-// arbitrary comma-separated strings per their docs, so those stay as free
-// text rather than a guessed, possibly-incomplete dropdown list.
 const DIET_OPTIONS = [
   { value: '', label: 'Any diet' },
   { value: 'vegetarian', label: 'Vegetarian' },
