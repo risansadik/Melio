@@ -27,10 +27,7 @@ const USER_STORAGE_KEY = 'pantry.user';
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isInitializing, setIsInitializing] = useState(true);
-
-  // Rehydrate the session on first load: if we have a stored user + access
-  // token, trust it until a request actually proves the token is invalid
-  // (the apiClient interceptor handles refresh/expiry transparently).
+  
   useEffect(() => {
     const storedUser = localStorage.getItem(USER_STORAGE_KEY);
     const hasToken = Boolean(tokenStore.getAccessToken());
