@@ -85,7 +85,9 @@ export const loginUser = async (input: LoginInput) => {
   };
 };
 
-export const refreshTokens = async (presentedRefreshToken: string): Promise<AuthTokens> => {
+export const refreshTokens = async (
+  presentedRefreshToken: string
+): Promise<AuthTokens & { user: { id: string; name: string; email: string } }> => {
   let payload;
 
   try {
@@ -115,7 +117,12 @@ export const refreshTokens = async (presentedRefreshToken: string): Promise<Auth
     data: { revoked: true },
   });
 
-  return issueTokenPair(user.id, user.email);
+  const tokens = await issueTokenPair(user.id, user.email);
+
+  return {
+    ...tokens,
+    user: { id: user.id, name: user.name, email: user.email },
+  };
 };
 
 export const logoutUser = async (presentedRefreshToken: string): Promise<void> => {

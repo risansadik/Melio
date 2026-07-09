@@ -1,12 +1,16 @@
 import { apiClient } from './client';
-import { tokenStore } from './token-store.api';
-import { AuthResponse } from '../types';
+import { User } from '../types';
+
+interface AuthResult {
+  user: User;
+  accessToken: string;
+}
 
 export const registerRequest = async (input: {
   name: string;
   email: string;
   password: string;
-}): Promise<AuthResponse> => {
+}): Promise<AuthResult> => {
   const { data } = await apiClient.post('/auth/register', input);
   return data.data;
 };
@@ -14,13 +18,11 @@ export const registerRequest = async (input: {
 export const loginRequest = async (input: {
   email: string;
   password: string;
-}): Promise<AuthResponse> => {
+}): Promise<AuthResult> => {
   const { data } = await apiClient.post('/auth/login', input);
   return data.data;
 };
 
 export const logoutRequest = async (): Promise<void> => {
-  const refreshToken = tokenStore.getRefreshToken();
-  if (!refreshToken) return;
-  await apiClient.post('/auth/logout', { refreshToken });
+  await apiClient.post('/auth/logout');
 };

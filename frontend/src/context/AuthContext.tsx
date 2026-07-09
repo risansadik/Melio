@@ -7,8 +7,8 @@ import {
   useState,
 } from 'react';
 import { loginRequest, logoutRequest, registerRequest } from '../api/auth.api';
-import { SESSION_EXPIRED_EVENT } from '../api/client';
-import { tokenStore } from '../api/token-store.api'
+import { requestNewAccessToken, SESSION_EXPIRED_EVENT } from '../api/client';
+import { tokenStore } from '../api/token-store.api';
 import { User } from '../types';
 
 interface AuthContextValue {
@@ -22,44 +22,46 @@ interface AuthContextValue {
 
 export const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
-const USER_STORAGE_KEY = 'pantry.user';
-
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isInitializing, setIsInitializing] = useState(true);
-  
+
   useEffect(() => {
-    const storedUser = localStorage.getItem(USER_STORAGE_KEY);
-    const hasToken = Boolean(tokenStore.getAccessToken());
-    if (storedUser && hasToken) {
-      setUser(JSON.parse(storedUser));
-    }
-    setIsInitializing(false);
+    let cancelled = false;
+
+    const rehydrateSession = async () => {
+      try {
+        const result = await requestNewAccessToken();
+        if (!cancelled) setUser(result.user);
+      } catch {
+        if (!cancelled) setUser(null);
+      } finally {
+        if (!cancelled) setIsInitializing(false);
+      }
+    };
+
+    rehydrateSession();
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   useEffect(() => {
-    const handleSessionExpired = () => {
-      setUser(null);
-      localStorage.removeItem(USER_STORAGE_KEY);
-    };
+    const handleSessionExpired = () => setUser(null);
     window.addEventListener(SESSION_EXPIRED_EVENT, handleSessionExpired);
     return () => window.removeEventListener(SESSION_EXPIRED_EVENT, handleSessionExpired);
   }, []);
 
-  const persistSession = (nextUser: User, accessToken: string, refreshToken: string) => {
-    tokenStore.setTokens(accessToken, refreshToken);
-    localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(nextUser));
-    setUser(nextUser);
-  };
-
   const login = useCallback(async (email: string, password: string) => {
     const result = await loginRequest({ email, password });
-    persistSession(result.user, result.accessToken, result.refreshToken);
+    tokenStore.setAccessToken(result.accessToken);
+    setUser(result.user);
   }, []);
 
   const register = useCallback(async (name: string, email: string, password: string) => {
     const result = await registerRequest({ name, email, password });
-    persistSession(result.user, result.accessToken, result.refreshToken);
+    tokenStore.setAccessToken(result.accessToken);
+    setUser(result.user);
   }, []);
 
   const logout = useCallback(async () => {
@@ -67,7 +69,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       await logoutRequest();
     } finally {
       tokenStore.clear();
-      localStorage.removeItem(USER_STORAGE_KEY);
       setUser(null);
     }
   }, []);

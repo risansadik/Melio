@@ -5,9 +5,8 @@ export const SESSION_EXPIRED_EVENT = 'pantry:session-expired';
 
 const baseURL = import.meta.env.VITE_API_BASE_URL || '/api/v1';
 
-export const apiClient = axios.create({ baseURL });
-
-const refreshClient = axios.create({ baseURL });
+export const apiClient = axios.create({ baseURL, withCredentials: true });
+const refreshClient = axios.create({ baseURL, withCredentials: true });
 
 apiClient.interceptors.request.use((config: InternalAxiosRequestConfig) => {
   const token = tokenStore.getAccessToken();
@@ -20,16 +19,21 @@ apiClient.interceptors.request.use((config: InternalAxiosRequestConfig) => {
 
 let refreshPromise: Promise<string> | null = null;
 
-const performRefresh = async (): Promise<string> => {
-  const refreshToken = tokenStore.getRefreshToken();
-  if (!refreshToken) {
-    throw new Error('No refresh token available');
-  }
+interface RefreshResponseData {
+  user: { id: string; name: string; email: string };
+  accessToken: string;
+}
 
-  const { data } = await refreshClient.post('/auth/refresh', { refreshToken });
-  const { accessToken, refreshToken: newRefreshToken } = data.data;
-  tokenStore.setTokens(accessToken, newRefreshToken);
-  return accessToken;
+export const requestNewAccessToken = async (): Promise<RefreshResponseData> => {
+  const { data } = await refreshClient.post('/auth/refresh');
+  const result: RefreshResponseData = data.data;
+  tokenStore.setAccessToken(result.accessToken);
+  return result;
+};
+
+const performRefresh = async (): Promise<string> => {
+  const result = await requestNewAccessToken();
+  return result.accessToken;
 };
 
 apiClient.interceptors.response.use(
