@@ -6,7 +6,11 @@ const app = createApp();
 
 const server = app.listen(env.PORT, () => {
   // eslint-disable-next-line no-console
-  console.log(`🚀 Server listening on http://localhost:${env.PORT} [${env.NODE_ENV}]`);
+  console.log(
+    env.NODE_ENV === 'production'
+      ? `🚀 Server listening on port ${env.PORT} [production]`
+      : `🚀 Server listening on http://localhost:${env.PORT} [${env.NODE_ENV}]`
+  );
 });
 
 const shutdown = async (signal: string) => {

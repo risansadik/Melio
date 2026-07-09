@@ -1,6 +1,3 @@
-// Prisma schema for the Interactive Recipe Application
-// Database: PostgreSQL
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -24,9 +21,7 @@ model User {
   @@map("users")
 }
 
-// Server-side record of issued refresh tokens, so they can be looked up,
-// rotated, and revoked (logout / logout-all-devices) instead of trusting
-// the JWT alone.
+
 model RefreshToken {
   id        String   @id @default(uuid())
   tokenHash String   @unique
@@ -40,10 +35,7 @@ model RefreshToken {
   @@map("refresh_tokens")
 }
 
-// A user's saved/favorited recipe. We cache the minimal display fields
-// (title, image) returned by Spoonacular so the "My Saved Recipes" list
-// can render without an extra API call per item; full details are still
-// fetched live from Spoonacular by spoonacularId when the user opens it.
+
 model SavedRecipe {
   id              String   @id @default(uuid())
   userId          String
