@@ -1,15 +1,13 @@
 import { Router } from 'express';
 import rateLimit from 'express-rate-limit';
-import * as authController from '../controllers/auth.controller';
+import { container } from '../container';
+import { TYPES } from '../types/inversify.types';
+import { AuthController } from '../controllers/auth.controller';
 import { validate } from '../middlewares/validate.middleware';
-import {
-  loginSchema,
-  logoutSchema,
-  refreshSchema,
-  registerSchema,
-} from '../validators/auth.validator';
+import { loginSchema, logoutSchema, refreshSchema, registerSchema } from '../validators/auth.validator';
 
 const router = Router();
+const authController = container.get<AuthController>(TYPES.AuthController);
 
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,

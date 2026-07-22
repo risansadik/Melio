@@ -26,7 +26,6 @@ export const errorHandler = (
     });
   }
 
-  // Unexpected/programmer error — log full detail server-side, hide internals from the client.
   // eslint-disable-next-line no-console
   console.error('Unhandled error:', err);
 

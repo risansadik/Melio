@@ -7,8 +7,8 @@ export interface AccessTokenPayload {
 }
 
 export interface RefreshTokenPayload {
-  sub: string; 
-  jti: string; 
+  sub: string;
+  jti: string;
 }
 
 export const signAccessToken = (payload: AccessTokenPayload): string => {

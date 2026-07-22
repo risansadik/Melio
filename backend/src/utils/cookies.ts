@@ -2,9 +2,7 @@ import { CookieOptions, Response } from 'express';
 import { env } from '../config/env';
 
 export const REFRESH_TOKEN_COOKIE_NAME = 'refreshToken';
-
-const REFRESH_TOKEN_TTL_MS = 7 * 24 * 60 * 60 * 1000; 
-
+const REFRESH_TOKEN_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 const COOKIE_PATH = '/api/v1/auth';
 
 const baseCookieOptions: CookieOptions = {

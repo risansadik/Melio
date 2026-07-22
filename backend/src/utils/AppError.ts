@@ -15,23 +15,18 @@ export class AppError extends Error {
   static badRequest(message: string, details?: unknown) {
     return new AppError(message, 400, details);
   }
-
   static unauthorized(message = 'Unauthorized') {
     return new AppError(message, 401);
   }
-
   static forbidden(message = 'Forbidden') {
     return new AppError(message, 403);
   }
-
   static notFound(message = 'Resource not found') {
     return new AppError(message, 404);
   }
-
   static conflict(message: string) {
     return new AppError(message, 409);
   }
-
   static badGateway(message = 'Upstream service error') {
     return new AppError(message, 502);
   }

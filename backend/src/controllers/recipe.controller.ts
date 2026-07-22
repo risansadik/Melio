@@ -1,36 +1,47 @@
+import { injectable, inject } from 'inversify';
 import { Request, Response } from 'express';
+import { TYPES } from '../types/inversify.types';
 import { asyncHandler } from '../utils/asyncHandler';
 import { AppError } from '../utils/AppError';
-import * as recipeService from '../services/recipe.service';
-import { SearchRecipesParams } from '../services/recipe.service';
+import { ISpoonacularClient, SearchRecipesParams } from '../interfaces/spoonacular-client.interface';
+import { ISavedRecipeRepository } from '../interfaces/saved-recipe-repository.interface';
 
-export const search = asyncHandler(async (req: Request, res: Response) => {
-  const q = req.query as unknown as SearchRecipesParams;
-  const result = await recipeService.searchRecipes(q);
-  res.status(200).json({ status: 'success', data: result });
-});
+@injectable()
+export class RecipeController {
+  constructor(
+    @inject(TYPES.SpoonacularClient) private readonly _spoonacularClient: ISpoonacularClient,
+    @inject(TYPES.SavedRecipeRepository)
+    private readonly _savedRecipeRepository: ISavedRecipeRepository
+  ) { }
 
-export const getById = asyncHandler(async (req: Request, res: Response) => {
-  const id = Number(req.params.id);
-  const recipe = await recipeService.getRecipeDetails(id);
-  res.status(200).json({ status: 'success', data: recipe });
-});
+  search = asyncHandler(async (req: Request, res: Response) => {
+    const q = req.query as unknown as SearchRecipesParams;
+    const result = await this._spoonacularClient.searchRecipes(q);
+    res.status(200).json({ status: 'success', data: result });
+  });
 
-export const saveRecipe = asyncHandler(async (req: Request, res: Response) => {
-  if (!req.user) throw AppError.unauthorized();
-  const saved = await recipeService.saveRecipeForUser(req.user.id, req.body);
-  res.status(201).json({ status: 'success', data: saved });
-});
+  getById = asyncHandler(async (req: Request, res: Response) => {
+    const id = Number(req.params.id);
+    const recipe = await this._spoonacularClient.getRecipeDetails(id);
+    res.status(200).json({ status: 'success', data: recipe });
+  });
 
-export const listSaved = asyncHandler(async (req: Request, res: Response) => {
-  if (!req.user) throw AppError.unauthorized();
-  const { page, limit } = req.query as unknown as { page: number; limit: number };
-  const result = await recipeService.listSavedRecipes(req.user.id, page, limit);
-  res.status(200).json({ status: 'success', data: result });
-});
+  saveRecipe = asyncHandler(async (req: Request, res: Response) => {
+    if (!req.user) throw AppError.unauthorized();
+    const saved = await this._savedRecipeRepository.save(req.user.id, req.body);
+    res.status(201).json({ status: 'success', data: saved });
+  });
 
-export const removeSaved = asyncHandler(async (req: Request, res: Response) => {
-  if (!req.user) throw AppError.unauthorized();
-  await recipeService.deleteSavedRecipe(req.user.id, req.params.id);
-  res.status(200).json({ status: 'success', data: null });
-});
+  listSaved = asyncHandler(async (req: Request, res: Response) => {
+    if (!req.user) throw AppError.unauthorized();
+    const { page, limit } = req.query as unknown as { page: number; limit: number };
+    const result = await this._savedRecipeRepository.listForUser(req.user.id, page, limit);
+    res.status(200).json({ status: 'success', data: result });
+  });
+
+  removeSaved = asyncHandler(async (req: Request, res: Response) => {
+    if (!req.user) throw AppError.unauthorized();
+    await this._savedRecipeRepository.delete(req.user.id, req.params.id);
+    res.status(200).json({ status: 'success', data: null });
+  });
+}
