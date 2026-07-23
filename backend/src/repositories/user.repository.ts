@@ -1,5 +1,5 @@
 import { injectable, inject } from 'inversify';
-import { PrismaClient, User } from '@prisma/client';
+import { PrismaClient, User } from '.prisma/client';
 import { TYPES } from '../types/inversify.types';
 import { IUserRepository } from '../interfaces/user-repository.interface';
 
