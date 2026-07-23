@@ -24,15 +24,8 @@ import { RecipeController } from './controllers/recipe.controller';
 
 const container = new Container();
 
-// The Prisma client is a pre-built singleton (see lib/prisma.ts), so we
-// bind the existing instance rather than letting Inversify construct one.
 container.bind<PrismaClient>(TYPES.PrismaClient).toConstantValue(prisma);
 
-// Every service/repository is bound to its INTERFACE, not its concrete
-// class. Consumers only ever see the interface type — the concrete
-// implementation is purely a container wiring detail. This is enforced
-// consistently across BOTH features (auth and recipes): nothing above the
-// repository layer ever touches Prisma directly.
 container.bind<IUserRepository>(TYPES.UserRepository).to(UserRepository).inSingletonScope();
 container
   .bind<IRefreshTokenRepository>(TYPES.RefreshTokenRepository)
